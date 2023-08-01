@@ -1,6 +1,6 @@
 
 const emailPassRequiredValidator = (req,res,next) => {
-    console.log('emailPassRequiredValidator')
+    
     if(req.method === "POST"){
     const {email,password} = req.body;
 

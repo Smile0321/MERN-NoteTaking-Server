@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const express = require("express");
 const cors =require("cors");
 
-const { albumRouter } = require("./routes/album.route.js");
+const { noteRouter } = require("./routes/note.route.js");
 
 const { userRouter } = require("./routes/user.route.js");
 const { connection } = require("./config/db.js");
@@ -14,7 +14,7 @@ app.use(cors());
 
 
 app.use("/", userRouter);
-app.use("/albums", albumRouter);
+app.use("/notes", noteRouter);
 
 
 app.get("/", async (req, res) => {

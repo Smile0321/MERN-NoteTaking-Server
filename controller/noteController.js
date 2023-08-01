@@ -1,8 +1,9 @@
-const { AlbumModel } = require("../models/albumModel");
+const { NoteModel } = require("../models/noteModel");
+const { UserModel } = require("../models/userModel");
 
-const getAllAlbums = async (req, res) => {
+const getAllNotes = async (req, res) => {
+
   try {
-    // console.log("query", req.query);
     let { _sort, _order, page, limit, ...rest } = req.query;
     page = +page || 1;
     limit = +limit || 6;
@@ -12,18 +13,18 @@ const getAllAlbums = async (req, res) => {
       order = _order === "asc" ? 1 : -1;
     }
     if (rest.genre || _order) {
-      const totalAlbum = await AlbumModel.find(rest).count();
-      const totalPages = Math.ceil(totalAlbum / limit);
-      const result = await AlbumModel.find(rest)
+      const totalNote = await NoteModel.find(rest).count();
+      const totalPages = Math.ceil(totalNote / limit);
+      const result = await NoteModel.find(rest)
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: order, updatedAt: -1 });
 
       return res.status(200).send({ result, totalPages });
     } else {
-      const totalAlbum = await AlbumModel.find({}).count();
-      const totalPages = Math.ceil(totalAlbum / limit);
-      const result = await AlbumModel.find({}).skip(skip)
+      const totalNote = await NoteModel.find({}).count();
+      const totalPages = Math.ceil(totalNote / limit);
+      const result = await NoteModel.find({}).skip(skip)
         .limit(limit).sort({ updatedAt: -1 });
 
       if (result.length > 0) {
@@ -35,25 +36,26 @@ const getAllAlbums = async (req, res) => {
       }
     }
   } catch (error) {
-    return res.status(500).json({ message: err.message, status: "error" });
+    return res.status(500).json({ message: error.message, status: "error" });
   }
 };
 
-const getOneAlbum = async (req, res) => {
+const getOneNote = async (req, res) => {
   try {
     const id = req.params.id;
-    const result = await AlbumModel.findById({ id });
+    const result = await NoteModel.findById({ id });
     return res.status(200).send(result);
   } catch (err) {
     return res.status(500).json({ message: err.message, status: "error" });
   }
 };
 
-const addAlbum = async (req, res) => {
+const addNote = async (req, res) => {
+  
   try {
-    const newAlbum = new AlbumModel({ ...req.body, createdDate: new Date().getTime(), isArchived: false });
-    await newAlbum.save();
-    return res.status(201).send(newAlbum);
+    const newNote = new NoteModel({ ...req.body, userEmail: req.body.userEmail, createdDate: new Date().getTime(), isArchived: false });
+    await newNote.save();
+    return res.status(201).send(newNote);
   } catch (err) {
     return res.status(500).json({ message: err.message, status: "error" });
   }
@@ -64,25 +66,25 @@ const updateArchiveStatus = async (req, res) => {
     const id = req.params.id;
     const { userId } = req.body;
 
-    const foundAlbum = await AlbumModel.findById(id);
-    if (foundAlbum.userId === userId) {
-      const updatedAlbum = await AlbumModel.findByIdAndUpdate(
+    const foundNote = await NoteModel.findById(id);
+    if (foundNote.userId === userId) {
+      const updatedNote = await NoteModel.findByIdAndUpdate(
         { _id: id },
-        { isArchived: !foundAlbum.isArchived },
+        { isArchived: !foundNote.isArchived },
         { new: true }
       );
-      if (updatedAlbum) {
+      if (updatedNote) {
         return res
           .status(201)
           .send({
             status: "success",
-            message: foundAlbum.isArchived == false ? " Archived successfully" : " Unarchived successfully"
+            message: foundNote.isArchived == false ? " Archived successfully" : " Unarchived successfully"
           });
       }
     } else {
       return res.status(400).send({
         status: "error",
-        message: "you are not authorize to update this album",
+        message: "you are not authorize to update this note",
       });
     }
   } catch (err) {
@@ -91,20 +93,20 @@ const updateArchiveStatus = async (req, res) => {
   }
 };
 
-const updateAlbum = async (req, res) => {
-  console.log('req.body', req.body)
+const updateNote = async (req, res) => {
+  
   try {
     const id = req.params.id;
     const { userId } = req.body;
 
-    const foundAlbum = await AlbumModel.findById(id);
-    if (foundAlbum.userId === userId) {
-      const updatedAlbum = await AlbumModel.findByIdAndUpdate(
+    const foundNote = await NoteModel.findById(id);
+    if (foundNote.userId === userId) {
+      const updatedNote = await NoteModel.findByIdAndUpdate(
         { _id: id },
         req.body,
         { new: true }
       );
-      if (updatedAlbum) {
+      if (updatedNote) {
         return res
           .status(201)
           .send({ status: "success", message: " updated successfully" });
@@ -112,7 +114,7 @@ const updateAlbum = async (req, res) => {
     } else {
       return res.status(400).send({
         status: "error",
-        message: "you are not authorize to update this album",
+        message: "you are not authorize to update this note",
       });
     }
   } catch (err) {
@@ -121,17 +123,17 @@ const updateAlbum = async (req, res) => {
   }
 };
 
-const deleteAlbum = async (req, res) => {
+const deleteNote = async (req, res) => {
   try {
     const id = req.params.id;
     const { userId } = req.body;
 
-    const foundAlbum = await AlbumModel.findById(id);
+    const foundNote = await NoteModel.findById(id);
 
-    if (foundAlbum.userId === userId) {
-      const deleteAlbum = await AlbumModel.findByIdAndDelete(id);
+    if (foundNote.userId === userId) {
+      const deleteNote = await NoteModel.findByIdAndDelete(id);
 
-      if (deleteAlbum) {
+      if (deleteNote) {
         return res
           .status(200)
           .send({ status: "success", message: "Note deleted successfully" });
@@ -148,10 +150,10 @@ const deleteAlbum = async (req, res) => {
 };
 
 module.exports = {
-  getAllAlbums,
-  getOneAlbum,
-  addAlbum,
-  updateAlbum,
-  deleteAlbum,
+  getAllNotes,
+  getOneNote,
+  addNote,
+  updateNote,
+  deleteNote,
   updateArchiveStatus
 };

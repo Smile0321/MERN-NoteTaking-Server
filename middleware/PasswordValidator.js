@@ -1,5 +1,5 @@
 const passwordValidator = (req, res, next) => {
-  console.log('passwordValidator')
+  
     if (req.method === "POST") {
       let { password } = req.body;
       if(password){
